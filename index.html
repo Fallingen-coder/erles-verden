@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Erles Verden</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #000; overflow: hidden; font-family: Georgia, serif; }
+    #c { display: block; width: 100vw; height: 100vh; }
+
+    #crosshair {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      color: white; font-size: 24px;
+      pointer-events: none; display: none;
+      text-shadow: 1px 1px 2px #000;
+    }
+
+    #hud {
+      position: fixed; top: 0; left: 0; right: 0;
+      padding: 10px 16px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+      display: none;
+      pointer-events: none;
+    }
+    #hud-top { display: flex; gap: 20px; align-items: center; }
+    .hud-stat { color: #f5c842; font-size: 15px; text-shadow: 1px 1px 2px #000; }
+    .hud-stat span { color: #fff; }
+    #rank-label { color: #f5c842; font-size: 18px; font-weight: bold; text-shadow: 1px 1px 2px #000; margin-right: 12px; }
+
+    #tasks-panel {
+      position: fixed; right: 12px; top: 60px;
+      width: 240px;
+      background: rgba(20,10,5,0.88);
+      border: 1.5px solid #6b4e2a;
+      border-radius: 10px;
+      padding: 10px;
+      display: none;
+      pointer-events: all;
+    }
+    #tasks-panel h3 { color: #f5c842; font-size: 14px; margin-bottom: 8px; text-align: center; }
+    .task-item {
+      background: rgba(50,35,10,0.85);
+      border: 1px solid #6b4e2a;
+      border-radius: 6px;
+      padding: 7px 9px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .task-item:hover { background: rgba(90,60,20,0.95); border-color: #f5c842; }
+    .task-item.done { background: rgba(20,60,20,0.7); border-color: #3a8a3a; cursor: default; }
+    .task-name { color: #f5c842; font-size: 12px; font-weight: bold; }
+    .task-done-name { color: #5cb85c; font-size: 12px; font-weight: bold; }
+    .task-reward { color: #c8a96e; font-size: 11px; margin-top: 2px; }
+    #next-day-btn {
+      width: 100%; margin-top: 8px; padding: 7px;
+      background: #1a6a1a; border: 1.5px solid #5cb85c;
+      border-radius: 7px; color: #fff; font-family: Georgia, serif;
+      font-size: 13px; cursor: pointer;
+    }
+    #next-day-btn:hover { background: #2d8a2d; }
+    #day-label { color: #c8a96e; font-size: 11px; text-align: center; margin-top: 5px; }
+
+    #menu {
+      position: fixed; inset: 0;
+      background: linear-gradient(to bottom, #0d1b2a, #1a3a1a);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 24px;
+    }
+    #menu h1 { color: #f5c842; font-size: 52px; text-shadow: 2px 2px 8px #000; }
+    #menu p { color: #c8a96e; font-size: 20px; }
+    #menu button {
+      padding: 14px 48px; font-size: 20px; font-family: Georgia, serif;
+      background: #c8821a; border: 2px solid #f5c842;
+      color: #fff; border-radius: 10px; cursor: pointer;
+    }
+    #menu button:hover { background: #e6a020; }
+
+    #location-select {
+      position: fixed; inset: 0;
+      background: linear-gradient(to bottom, #0d1b2a, #1a3a1a);
+      display: none; flex-direction: column;
+      align-items: center; justify-content: center; gap: 16px;
+    }
+    #location-select h2 { color: #f5c842; font-size: 32px; }
+    #location-select p { color: #c8a96e; font-size: 16px; margin-top: -8px; }
+    #loc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 700px; width: 90%; }
+    .loc-card {
+      background: rgba(40,30,15,0.9); border: 1.5px solid #6b4e2a;
+      border-radius: 12px; padding: 18px 16px; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .loc-card:hover { background: rgba(80,60,30,0.95); border-color: #f5c842; }
+    .loc-emoji { font-size: 36px; }
+    .loc-name { color: #f5c842; font-size: 18px; font-weight: bold; margin: 6px 0 2px; }
+    .loc-diff { font-size: 13px; margin-bottom: 6px; }
+    .loc-desc { color: #c8a96e; font-size: 13px; line-height: 1.4; }
+
+    #lock-msg {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.7); color: #fff; padding: 10px 22px;
+      border-radius: 8px; font-size: 14px; display: none; pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div id="crosshair">+</div>
+
+  <div id="hud">
+    <div id="hud-top">
+      <span id="rank-label">Nybegynner</span>
+      <span class="hud-stat">🪙 <span id="gold-val">0</span></span>
+      <span class="hud-stat">🍞 <span id="food-val">0</span></span>
+      <span class="hud-stat">⭐ <span id="xp-val">0</span></span>
+    </div>
+  </div>
+
+  <div id="tasks-panel">
+    <h3>Oppgaver</h3>
+    <div id="task-list"></div>
+    <button id="next-day-btn">Neste dag ➡</button>
+    <div id="day-label">Dag 1</div>
+  </div>
+
+  <div id="menu">
+    <h1>Erles Verden</h1>
+    <p>Bygg ditt hjem, styr ditt rike</p>
+    <button id="start-btn">Start spill</button>
+  </div>
+
+  <div id="location-select">
+    <h2>Velg startlokasjon</h2>
+    <p>Hvor vil du begynne eventyret ditt?</p>
+    <div id="loc-grid"></div>
+  </div>
+
+  <div id="lock-msg">Klikk for å låse musen — ESC for å frigjøre</div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.167.1/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.167.1/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module" src="src/main.js?v=4"></script>
+</body>
+</html>

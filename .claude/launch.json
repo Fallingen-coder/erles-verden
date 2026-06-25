@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "erles-verden",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-p", "5555", "/Users/grimhenrik/Documents/Erle/spill"],
+      "port": 5555
+    }
+  ]
+}
