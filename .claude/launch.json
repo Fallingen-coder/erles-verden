@@ -4,7 +4,7 @@
     {
       "name": "erles-verden",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "-p", "5555", "/Users/grimhenrik/Documents/Erle/spill"],
+      "runtimeArgs": ["serve", "-p", "5555", "."],
       "port": 5555
     }
   ]
